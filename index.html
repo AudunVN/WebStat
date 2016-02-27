@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="cache-control" content="public">
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta name="KEYWORDS" content="discovery infocards infocard freelancer space error sirius html5 css3 new">
+	<meta name="DESCRIPTION" content="An online infocard viewer for Discovery Freelancer.">
+	<link rel="icon" type="image/png" href="favicon.png">
+	<!--[if IE]><link href="favicon.ico" rel="shortcut icon" type="image/x-icon"><![endif]--><!-- Internet Exploder-->
+	<title>Discovery Navmap</title>
+	<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="//bootswatch.com/cyborg/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.11,b-1.1.2,b-colvis-1.1.2,b-flash-1.1.2,b-html5-1.1.2,b-print-1.1.2,cr-1.3.1,fc-3.2.1,fh-3.1.1,kt-2.1.1,r-2.0.2,rr-1.1.1,sc-1.4.1,se-1.1.2/datatables.min.css"/>
+	<script type="text/javascript" src="https://cdn.datatables.net/t/bs/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.11,b-1.1.2,b-colvis-1.1.2,b-flash-1.1.2,b-html5-1.1.2,b-print-1.1.2,cr-1.3.1,fc-3.2.1,fh-3.1.1,kt-2.1.1,r-2.0.2,rr-1.1.1,sc-1.4.1,se-1.1.2/datatables.min.js"></script>
+	<script>
+	var dataRootPath = "v48845/";
+	var infocardFile = dataRootPath+"infocards.txt";
+	var infocardMapFile = dataRootPath+"infocardmap.ini";
+	var shiparchFile = dataRootPath+"shiparch.ini";
+	var infocardArray = {};
+	infocardArray.ready = false;
+	var infocardMapArray = {};
+	infocardMapArray.ready = false;
+	var shipObjectArray = {};
+	shipObjectArray.ready = false;
+	var textRegex = /(<(text|TEXT)>.+?<\/(text|TEXT)>|<(para|PARA)\/>)/g;
+	var commentRegex = /[\n\r]+;+.*/g;
+	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
+	var idsInfoRegex = /ids_info\d* *= *([^\r\n;]*)/g;
+ 
+	function generateLookupArrays() {
+		/* contains all the AJAX .get requests responsible for generating the lookup arrays. */
+		
+		/* there is no case where caching would cause issues: the content for each mod directory is static. */
+		$.ajaxSetup({
+			cache: true
+		});
+		
+		/* infocardArray references infocard IDS numbers to infocards. */		
+		$.get(infocardFile, function(data) {
+			var rawInfocardArray = data.replace(/\r/g,"").split("\n");
+			for (i = 0; i < rawInfocardArray.length-1; i += 2) { 
+				infocardArray[rawInfocardArray[i].toString()] = rawInfocardArray[i+1].toString();
+			}
+			infocardArray.ready = true;
+			console.log("Infocard lookup array generated");
+		});
+		
+		/* infocardMapArray lists any extra infocards associated with each infocard. */
+		/* This is used for base and planet descriptions, which occasionally use another infocard for 
+		   block text in addition to the main infocard with "technical data" or similar content. */
+		$.get(infocardMapFile, function(data) {
+			var mapArray = data.replace(commentRegex,"").match(infocardMapRegex);
+			for (i = 0; i < mapArray.length; i++) { 
+				var lookupString = mapArray[i].split("=");
+				var keyPairArray = lookupString[1].replace(/ /g,"").split(",");
+				infocardMapArray[keyPairArray[0].toLowerCase()] = keyPairArray[1];
+			}
+			infocardMapArray.ready = true;
+			console.log("Infocard map lookup array generated");
+		});
+		
+		$.get(shiparchFile, function(data) {
+			var shipReadyFunction = function(){console.log("Ship object array generated");};
+			shipObjectArray = generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts"], shipReadyFunction);
+		});
+	}
+	
+	function generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction) {
+		if (!infocardArray.ready | !infocardMapArray.ready) {
+			setTimeout(function(){generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction)},10);
+		} else {
+			var dataObjectArray = [];
+			sanitizedRawData = rawDataString.replace(commentRegex,"").toLowerCase();
+			var selectorRegex = /(\n[^\r\n;]*\[[^\[\]]+\])([^;\[]*(?=\n\w*|$))/;
+			console.log(sanitizedRawData.match(selectorRegex)[1].slice(2,-1));
+			selectorRegex = new RegExp("(\n[^\r\n;]*\[" + sanitizedRawData.match(selectorRegex)[1].slice(2,-1) + "\])([^;\[]*(?=\n\w*|$))", "g");
+			console.log(selectorRegex);
+			var rawObjectDataArray = sanitizedRawData.match(selectorRegex);
+			for (i = 0; i < rawObjectDataArray.length; i++) {
+				var objectRequirementsMet = true;
+				for (z = 0; z < requiredPropertyArray.length; z++) {
+					if (rawObjectDataArray[i].indexOf(requiredPropertyArray[z]) == -1) {
+						objectRequirementsMet = false;
+					}
+				}
+				if (objectRequirementsMet) {
+					var dataObject = {};
+					var dataKeyPairArray = rawObjectDataArray[i].split("\n");
+					for (y = 0; y < dataKeyPairArray.length; y++) {
+						if (dataKeyPairArray[y].indexOf("=") !== -1) {
+							var keyPair = dataKeyPairArray[y].split("=");
+							dataObject[keyPair[0].toString().trim()] = keyPair[1].toString().trim()
+						}
+					}
+					/* grab infocards if available */
+					/*var extraInfocards = rawObjectDataArray[i].match(idsInfoRegex);
+					for (d = 0; d < extraInfocards.length; d++) {
+						var extraNum = d;
+						if (d == 0) {
+							extraNum = "";
+						}
+						if (dataObject.hasOwnProperty("ids_info"+extraNum) && typeof infocardArray[(parseInt(dataObject["ids_info"+extraNum])).toString()] !== "undefined") {
+							console.log("ids_info"+extraNum);
+							console.log(infocardArray[(parseInt(dataObject["ids_info"+extraNum])).toString()]);
+							dataObject["infocardString"] += parseInfocard(infocardArray[parseInt(dataObject["ids_info"+extraNum])]);
+							if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"+extraNum])).toString()]] !== "undefined") {
+								dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"+extraNum])).toString()]]);
+							}
+						}
+					}*/
+					/*if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
+						dataObject["infocardString"] += parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
+						if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
+							dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
+						}
+					}*/
+					if (dataObject.hasOwnProperty("ids_info1") && typeof infocardArray[(parseInt(dataObject["ids_info1"])).toString()] !== "undefined") {
+						dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info1"])]);
+						if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]] !== "undefined") {
+							dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]]);
+						}
+					}
+					if (dataObject.hasOwnProperty("ids_name") && typeof infocardArray[(parseInt(dataObject["ids_name"])).toString()] !== "undefined") {
+						dataObject["nameInfocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_name"])]);
+						if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_name"])).toString()]] !== "undefined") {
+							dataObject["nameInfocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_name"])).toString()]]);
+						}
+					}
+					dataObjectArray.push(dataObject);
+				}
+			}
+			readyFunction();
+			dataObjectArray.ready=true;
+			return dataObjectArray;
+		}
+	}
+	
+	function generateTable() {
+		var dataArray = shipObjectArray;
+		if (!infocardArray.ready | !shipObjectArray.ready | !infocardMapArray.ready) {
+			setTimeout(function(){generateTable()},10);
+		} else {
+			$('#tableTest').DataTable( {
+				data: dataArray,
+				columns: [
+					{ title: "Ship", data: 'nameInfocardString' },
+					{ title: "Hold size", data: 'hold_size' },
+					{ title: "Hitpoints", data: 'hit_pts' },
+					{ title: "Name infocard number", data: 'ids_name' },
+					{ title: "Infocard number", data: 'ids_info' },
+					{ title: "Internal nickname", data: 'nickname' },
+					{ title: "Infocard", data: 'infocardString' }
+				]
+			});
+		}
+	}
+
+	
+	function parseInfocard(infocard) {
+		/* Parses an MSXML infocard into displayable HTML. */
+		/* Note: This currently ignores all formatting, and requires a rework. */
+		if (infocard.toLowerCase().indexOf("<text>") == -1) {
+			return infocard;
+		} else {
+			return infocard.toString().match(textRegex).map(function (textElement) { 
+				if (textElement.toLowerCase().indexOf("<para") != -1) {
+					return "<br class='infocardBreak'>";
+				} else {
+					return "<span class='infocardText'>"+textElement.slice(6,-7)+"</span>";
+				}
+			}).join("");
+		}
+	}
+	
+	
+	$.extend($.expr[":"], {
+		/* case-insensitive contains filter */
+		"containsNC": function(elem, i, match, array) {
+			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+		}
+	});
+	
+	var invertObject = function(object) {
+		var invertedObject = {};
+		for (var value in object) {
+			if(object.hasOwnProperty(value)) {
+				invertedObject[object[value]] = value;
+			}
+		}
+		return invertedObject;
+	}
+	</script>
+	<link href='//fonts.googleapis.com/css?family=Oswald:300' rel='stylesheet' type='text/css'>
+	<link href='//fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	<style>
+		.child .infocardText {
+			white-space: normal;
+		}
+		
+		.row {
+			margin-right: 0;
+		}
+		.col-sm-12 {
+			padding-right: 0;
+		}
+	</style>
+</head>
+<body>
+	<table id="tableTest" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+
+	<script>
+		$(document).ready(function() {
+			generateLookupArrays();
+			generateTable();
+		});
+	</script>
+	<script>
+		var _gaq=[['_setAccount','UA-33754219-1'],['_trackPageview']];
+		(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+		g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+		s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+</body>
+</html>
