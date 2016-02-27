@@ -138,12 +138,11 @@
 	}
 	
 	function generateTable() {
-		var dataArray = shipObjectArray;
-		if (!infocardArray.ready | !shipObjectArray.ready | !infocardMapArray.ready) {
+		if (typeof shipObjectArray === "undefined" || !shipObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
 			setTimeout(function(){generateTable()},10);
 		} else {
 			$('#tableTest').DataTable( {
-				data: dataArray,
+				data: shipObjectArray,
 				columns: [
 					{ title: "Ship", data: 'nameInfocardString' },
 					{ title: "Hold size", data: 'hold_size' },
@@ -221,6 +220,6 @@
 		(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
 		g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
 		s.parentNode.insertBefore(g,s)}(document,'script'));
-        </script>
+    </script>
 </body>
 </html>
