@@ -535,7 +535,17 @@
 			border-bottom: none;
 		}
 		
+		.table [aria-label="Gun class: activate to sort column ascending"] select,
+		.table [aria-label="Type: activate to sort column ascending"] select {
+			display: inline-block;
+			margin-right: 1.5em;
+		}
+		
+		table.dataTable thead > tr > th.sorting_asc, table.dataTable thead > tr > th.sorting_desc, table.dataTable thead > tr > th.sorting, table.dataTable thead > tr > td.sorting_asc, table.dataTable thead > tr > td.sorting_desc, table.dataTable thead > tr > td.sorting {
+		}
+		
 		.table select {
+			display: none;
 			margin-left: 0.5em;
 			color: white;
 			background-color: rgb(78, 78, 78);
