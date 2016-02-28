@@ -172,6 +172,7 @@
 		if (typeof shipObjectArray === "undefined" || !shipObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
 			setTimeout(function(){generateTable()},10);
 		} else {
+			console.log("Rendering table.");
 			$('#tableTest').DataTable( {
 				data: shipObjectArray,
 				fixedHeader: true,
