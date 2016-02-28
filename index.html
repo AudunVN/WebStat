@@ -18,6 +18,7 @@
 	var infocardFile = dataRootPath+"infocards.txt";
 	var infocardMapFile = dataRootPath+"infocardmap.ini";
 	var shiparchFile = dataRootPath+"shiparch.ini";
+	var weaponEquipFile = dataRootPath+"weapon_equip.ini";
 	var tableReady = false;
 	var infocardArray = {};
 	infocardArray.ready = false;
@@ -25,6 +26,10 @@
 	infocardMapArray.ready = false;
 	var shipObjectArray = {};
 	shipObjectArray.ready = false;
+	var weaponEquipArray = {};
+	weaponEquipArray.ready = false;
+	var weaponMunitionArray = {};
+	weaponMunitionArray.ready = false;
 	var textRegex = /(<(text|TEXT)>.+?<\/(text|TEXT)>|<(para|PARA)\/>)/g;
 	var commentRegex = /[\n\r]+;+.*/g;
 	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
@@ -62,8 +67,57 @@
 			console.log("Infocard map lookup array generated");
 		});
 		
+		$.get(weaponEquipFile, function(data) {
+			var weaponReadyFunction = function(dataObjectArray){
+				console.log("Weapon object array generated");
+				weaponEquipArray = dataObjectArray;
+				var weaponColumnArray = [
+					{ title: "Weapon", data: 'nameInfocardString' },
+					{ title: "Hull damage", data: 'hull_damage' },
+					{ title: "Shield damage", data: 'energy_damage' },	
+					{ title: "Speed", data: 'muzzle_velocity' },
+					{ title: "Refire delay", data: 'refire_delay' },
+					{ title: "Turn rate", data: 'turn_rate' },
+					{ title: "Hitpoints", data: 'hit_pts' },
+					{ title: "Name infocard number", data: 'ids_name' },
+					{ title: "Infocard number", data: 'ids_info' },
+					{ title: "Internal nickname", data: 'nickname' },
+					{ title: "Infocard", data: 'infocardString' }
+				];
+				generateTable("#weaponTable", weaponEquipArray, weaponColumnArray);
+			};
+			var weaponProcessingFunction = function(dataObject){
+				if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
+					dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
+					if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
+						dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
+					}
+				}
+				return dataObject;
+			};
+			generateDataObjectArray(data, "", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);
+			/* generateDataObjectArray(data, "", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);*/
+		});
+		
 		$.get(shiparchFile, function(data) {
-			var shipReadyFunction = function(dataObjectArray){console.log("Ship object array generated");shipObjectArray = dataObjectArray;};
+			var shipReadyFunction = function(dataObjectArray){
+				console.log("Ship object array generated");
+				shipObjectArray = dataObjectArray;
+				var shipColumnArray = [
+					{ title: "Ship", data: 'nameInfocardString' },
+					{ title: "Class", data: 'ship_class' },
+					{ title: "Type", data: 'shipType' },
+					{ title: "Hold size", data: 'hold_size' },
+					{ title: "Hitpoints", data: 'hit_pts' },
+					{ title: "Nanobots", data: 'nanobot_limit' },
+					{ title: "Shield Batteries", data: 'shield_battery_limit' },
+					{ title: "Name infocard number", data: 'ids_name' },
+					{ title: "Infocard number", data: 'ids_info' },
+					{ title: "Internal nickname", data: 'nickname' },
+					{ title: "Infocard", data: 'infocardString' }
+				];
+				generateTable("#tableTest", shipObjectArray, shipColumnArray);
+			};
 			var shipProcessingFunction = function(dataObject){
 				if (dataObject.hasOwnProperty("ship_class")) {
 					switch (dataObject["ship_class"]) {
@@ -90,21 +144,31 @@
 						default: {dataObject["shipType"] = "Unknown"; break; }
 					}
 				}
+				if (dataObject.hasOwnProperty("ids_info1") && typeof infocardArray[(parseInt(dataObject["ids_info1"])).toString()] !== "undefined") {
+					dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info1"])]);
+					if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]] !== "undefined") {
+						dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]]);
+					}
+				}
 				return dataObject;
 			};
-			generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts", "nanobot_limit"], shipReadyFunction, shipProcessingFunction);
+			generateDataObjectArray(data, "", ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts", "nanobot_limit"], shipReadyFunction, shipProcessingFunction);
 		});
 	}
 	
-	function generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction, processingFunction) {
+	function generateDataObjectArray(rawDataString, dataIdentifier, requiredPropertyArray, readyFunction, processingFunction) {
 		if (!infocardArray.ready | !infocardMapArray.ready) {
-			setTimeout(function(){generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction, processingFunction)},10);
+			setTimeout(function(){generateDataObjectArray(rawDataString, dataIdentifier, requiredPropertyArray, readyFunction, processingFunction)},10);
 		} else {
 			var dataObjectArray = [];
 			sanitizedRawData = rawDataString.replace(commentRegex,"").toLowerCase();
 			var selectorRegex = /(\n[^\r\n;]*\[[^\[\]]+\])([^;\[]*(?=\n\w*|$))/;
 			console.log(sanitizedRawData.match(selectorRegex)[1].slice(2,-1));
-			selectorRegex = new RegExp("(\n[^\r\n;]*\[" + sanitizedRawData.match(selectorRegex)[1].slice(2,-1) + "\])([^;\[]*(?=\n\w*|$))", "g");
+			if (typeof dataIdentifier === "undefined" || dataIdentifier === "") {
+				selectorRegex = new RegExp("(\n[^\r\n;]*\[" + sanitizedRawData.match(selectorRegex)[1].slice(2,-1) + "\])([^;\[]*(?=\n\w*|$))", "g");
+			} else {
+				selectorRegex = new RegExp("(\n[^\r\n;]*\[" + dataIdentifier + "\])([^;\[]*(?=\n\w*|$))", "g");
+			}
 			console.log(selectorRegex);
 			var rawObjectDataArray = sanitizedRawData.match(selectorRegex);
 			for (i = 0; i < rawObjectDataArray.length; i++) {
@@ -145,12 +209,6 @@
 							dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
 						}
 					}*/
-					if (dataObject.hasOwnProperty("ids_info1") && typeof infocardArray[(parseInt(dataObject["ids_info1"])).toString()] !== "undefined") {
-						dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info1"])]);
-						if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]] !== "undefined") {
-							dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info1"])).toString()]]);
-						}
-					}
 					if (dataObject.hasOwnProperty("ids_name") && typeof infocardArray[(parseInt(dataObject["ids_name"])).toString()] !== "undefined") {
 						dataObject["nameInfocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_name"])]);
 						if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_name"])).toString()]] !== "undefined") {
@@ -167,19 +225,19 @@
 		}
 	}
 	
-	function generateTable() {
-		if (!shipObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
-			setTimeout(function(){generateTable()},10);
+	function generateTable(tableSelector, dataObjectArray, columnArray) {
+		if (!dataObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
+			setTimeout(function(){generateTable(tableSelector, dataObjectArray, columnArray)},10);
 		} else {
 			console.log("Rendering table.");
-			$('#tableTest').DataTable( {
-				data: shipObjectArray,
+			$(tableSelector).DataTable( {
+				data: dataObjectArray,
 				fixedHeader: true,
 				colReorder: true,
 				"pageLength": 50,
 				"initComplete": function(settings, json) {
 					tableReady = true;
-					$('#tableTest').DataTable().buttons().container().appendTo( $('.col-sm-6:eq(0)', $('#tableTest').DataTable().table().container() ) );
+					$(tableSelector).DataTable().buttons().container().appendTo( $('.col-sm-6:eq(0)', $(tableSelector).DataTable().table().container() ) );
 					this.api().columns().every( function () {
 						var column = this;
 						var select = $('<select><option value=""></option></select>')
@@ -198,26 +256,15 @@
 							select.append( '<option value="'+d+'">'+d+'</option>' )
 						} );
 					} );
-					$( "#tableTest select" ).click(function( event ) {
+					$( tableSelector+" select" ).click(function( event ) {
 					  event.stopPropagation();
 					});
-					$( "#tableTest select" ).mousedown(function( event ) {
+					$( tableSelector+" select" ).mousedown(function( event ) {
 					  event.stopPropagation();
 					});
 				},
-				columns: [
-					{ title: "Ship", data: 'nameInfocardString' },
-					{ title: "Class", data: 'ship_class' },
-					{ title: "Type", data: 'shipType' },
-					{ title: "Hold size", data: 'hold_size' },
-					{ title: "Hitpoints", data: 'hit_pts' },
-					{ title: "Nanobots", data: 'nanobot_limit' },
-					{ title: "Shield Batteries", data: 'shield_battery_limit' },
-					{ title: "Name infocard number", data: 'ids_name' },
-					{ title: "Infocard number", data: 'ids_info' },
-					{ title: "Internal nickname", data: 'nickname' },
-					{ title: "Infocard", data: 'infocardString' }
-				],
+				columns: columnArray,
+				stateSave: true,
 				buttons: [
 					{
 						extend: 'colvis',
@@ -407,8 +454,8 @@
 		  vertical-align: bottom;
 		}
 		.transformer-tabs li:nth-child(1) .active {
-		  color: #c6a0d5;
-		  border-bottom-color: #9b59b6;
+		  color: #AB91FF;
+		  border-bottom-color: #5B34DB;
 		}
 		.transformer-tabs li:nth-child(2) .active {
 		  color: #8bc4ea;
@@ -478,7 +525,7 @@
 		  padding-top: 1em;
 		}
 		.tabs > div:nth-of-type(1) {
-		  background: #9b59b6;
+		  background: #5B34DB;
 		}
 		.tabs > div:nth-of-type(2) {
 		  background: #3498db;
@@ -511,13 +558,13 @@
 			</ul>
 		</nav>
 		<div id="info" class="active">
-			<h2>Tab 1</h2>
+			<p>Very work-in-progress. Intended to provide a browser-based alternative to FLStat and complement the <a href="http://space.discoverygc.com/navmap" target="_BLANK">navmap</a> and <a href="http://discoverygc.com/wiki" target="_BLANK">Wiki</a> with up-to-date ship/equipment information.</p>
 		</div>
 		<div id="ships">
 			<table id="tableTest" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
 		</div>
 		<div id="weapons">
-			<h2>Tab 3</h2>
+			<table id="weaponTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
 		</div>
 	</div>
 
@@ -525,7 +572,6 @@
 		$(document).ready(function() {
 			Tabs.pageLoadCorrectTab();
 			generateLookupArrays();
-			generateTable();
 		});
 	</script>
 	<script>
