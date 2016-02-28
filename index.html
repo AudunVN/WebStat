@@ -93,13 +93,13 @@
 		});
 		
 		$.get(shiparchFile, function(data) {
-			shipObjectArray = generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts"], shipReadyFunction, shipProcessingFunction);
+			shipObjectArray = generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts", "nanobot_limit"], shipReadyFunction, shipProcessingFunction);
 		});
 	}
 	
 	function generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction, processingFunction) {
 		if (!infocardArray.ready | !infocardMapArray.ready) {
-			setTimeout(function(){generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction)},10);
+			setTimeout(function(){generateDataObjectArray(rawDataString, requiredPropertyArray, readyFunction, processingFunction)},10);
 		} else {
 			var dataObjectArray = [];
 			sanitizedRawData = rawDataString.replace(commentRegex,"").toLowerCase();
@@ -175,8 +175,10 @@
 			$('#tableTest').DataTable( {
 				data: shipObjectArray,
 				fixedHeader: true,
+				"pageLength": 50,
 				"initComplete": function(settings, json) {
 					tableReady = true;
+					$('#tableTest').DataTable().buttons().container().appendTo( $('.col-sm-6:eq(0)', $('#tableTest').DataTable().table().container() ) );
 				},
 				columns: [
 					{ title: "Ship", data: 'nameInfocardString' },
@@ -190,6 +192,12 @@
 					{ title: "Infocard number", data: 'ids_info' },
 					{ title: "Internal nickname", data: 'nickname' },
 					{ title: "Infocard", data: 'infocardString' }
+				],
+				buttons: [
+					{
+						extend: 'colvis',
+						columns: ':gt(0)'
+					}
 				]
 			});
 		}
@@ -307,6 +315,9 @@
 		
 		table.dataTable.fixedHeader-floating, table.dataTable.fixedHeader-locked {
 			background-color: #000 !important;
+			width: 100%;
+			padding: 0px;
+			margin: 0px;
 		}
 		
 		/* third-party code starts */
