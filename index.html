@@ -106,6 +106,9 @@
 								{ title: "Shield damage", data: 'energy_damage' },	
 								{ title: "Speed", data: 'muzzle_velocity' },
 								{ title: "Refire delay", data: 'refire_delay' },
+								{ title: "Refire rate", data: 'refireRate' },
+								{ title: "Energy use", data: 'power_usage' },
+								{ title: "Energy use rate", data: 'energyConsumptionRate' },
 								{ title: "Turn rate", data: 'turn_rate' },
 								{ title: "Hitpoints", data: 'hit_pts' },
 								{ title: "Name infocard number", data: 'ids_name' },
@@ -131,9 +134,25 @@
 									dataObject["energy_damage"] = hopefullyAMunition["energy_damage"];
 								}
 							}
+							if (dataObject.hasOwnProperty("refire_delay")) {
+								dataObject["refireRate"] = (1/dataObject["refire_delay"]).toPrecision(3);
+								dataObject["energyConsumptionRate"] = dataObject["power_usage"]*dataObject["refireRate"];
+							}
+							if (typeof dataObject["nameInfocardString"] === "undefined") {
+								dataObject["nameInfocardString"] = dataObject["nickname"];
+							}
+							if (typeof dataObject["hull_damage"] === "undefined") {
+								dataObject["hull_damage"] = 0;
+							}
+							if (typeof dataObject["energy_damage"] === "undefined") {
+								dataObject["energy_damage"] = 0;
+							}
+							if (typeof dataObject["infocardString"] === "undefined") {
+								dataObject["infocardString"] = "This gun has no infocard.";
+							}
 							return dataObject;
 						};
-						generateDataObjectArray(data, "gun", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);
+						generateDataObjectArray(data, "gun", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate", "power_usage"], weaponReadyFunction, weaponProcessingFunction);
 					};
 					var munitionProcessingFunction = function(dataObject){
 						console.log(dataObject["explosion_arch"]);
