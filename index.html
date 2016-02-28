@@ -29,36 +29,6 @@
 	var commentRegex = /[\n\r]+;+.*/g;
 	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
 	var idsInfoRegex = /ids_info\d* *= *([^\r\n;]*)/g;
-	
-	var shipReadyFunction = function(){console.log("Ship object array generated");};
-	var shipProcessingFunction = function(dataObject){
-		if (dataObject.hasOwnProperty("ship_class")) {
-			switch (dataObject["ship_class"]) {
-				case "0": {dataObject["shipType"] = "Light Fighter"; break; }
-				case "1": {dataObject["shipType"] = "Heavy Fighter"; break; }
-				case "2": {dataObject["shipType"] = "Freighter"; break; }
-				case "3": {dataObject["shipType"] = "Very Heavy Fighter"; break; }
-				case "4": {dataObject["shipType"] = "Super Heavy Fighter"; break; }
-				case "5": {dataObject["shipType"] = "Bomber"; break; }
-				case "6": {dataObject["shipType"] = "Small Transport"; break; }
-				case "7": {dataObject["shipType"] = "Medium Transport"; break; }
-				case "8": {dataObject["shipType"] = "Large Transport"; break; }
-				case "9": {dataObject["shipType"] = "Large Transport"; break; }
-				case "10": {dataObject["shipType"] = "Liner"; break; }
-				case "11": {dataObject["shipType"] = "Gunboat"; break; }
-				case "12": {dataObject["shipType"] = "Gunboat"; break; }
-				case "13": {dataObject["shipType"] = "Destroyer"; break; }
-				case "14": {dataObject["shipType"] = "Cruiser"; break; }
-				case "15": {dataObject["shipType"] = "Battlecruiser"; break; }
-				case "16": {dataObject["shipType"] = "Battleship"; break; }
-				case "17": {dataObject["shipType"] = "Carrier"; break; }
-				case "18": {dataObject["shipType"] = "Battleship"; break; }
-				case "19": {dataObject["shipType"] = "Repair Ship"; break; }
-				default: {dataObject["shipType"] = "Unknown"; break; }
-			}
-		}
-		return dataObject;
-	};
  
 	function generateLookupArrays() {
 		/* contains all the AJAX .get requests responsible for generating the lookup arrays. */
@@ -93,7 +63,36 @@
 		});
 		
 		$.get(shiparchFile, function(data) {
-			shipObjectArray = generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts", "nanobot_limit"], shipReadyFunction, shipProcessingFunction);
+			var shipReadyFunction = function(dataObjectArray){console.log("Ship object array generated");shipObjectArray = dataObjectArray;};
+			var shipProcessingFunction = function(dataObject){
+				if (dataObject.hasOwnProperty("ship_class")) {
+					switch (dataObject["ship_class"]) {
+						case "0": {dataObject["shipType"] = "Light Fighter"; break; }
+						case "1": {dataObject["shipType"] = "Heavy Fighter"; break; }
+						case "2": {dataObject["shipType"] = "Freighter"; break; }
+						case "3": {dataObject["shipType"] = "Very Heavy Fighter"; break; }
+						case "4": {dataObject["shipType"] = "Super Heavy Fighter"; break; }
+						case "5": {dataObject["shipType"] = "Bomber"; break; }
+						case "6": {dataObject["shipType"] = "Small Transport"; break; }
+						case "7": {dataObject["shipType"] = "Medium Transport"; break; }
+						case "8": {dataObject["shipType"] = "Large Transport"; break; }
+						case "9": {dataObject["shipType"] = "Large Transport"; break; }
+						case "10": {dataObject["shipType"] = "Liner"; break; }
+						case "11": {dataObject["shipType"] = "Gunboat"; break; }
+						case "12": {dataObject["shipType"] = "Gunboat"; break; }
+						case "13": {dataObject["shipType"] = "Destroyer"; break; }
+						case "14": {dataObject["shipType"] = "Cruiser"; break; }
+						case "15": {dataObject["shipType"] = "Battlecruiser"; break; }
+						case "16": {dataObject["shipType"] = "Battleship"; break; }
+						case "17": {dataObject["shipType"] = "Carrier"; break; }
+						case "18": {dataObject["shipType"] = "Battleship"; break; }
+						case "19": {dataObject["shipType"] = "Repair Ship"; break; }
+						default: {dataObject["shipType"] = "Unknown"; break; }
+					}
+				}
+				return dataObject;
+			};
+			generateDataObjectArray(data, ["ids_info1", "ids_info", "ids_name", "nickname", "hold_size", "hit_pts", "nanobot_limit"], shipReadyFunction, shipProcessingFunction);
 		});
 	}
 	
@@ -162,20 +161,21 @@
 					dataObjectArray.push(dataObject);
 				}
 			}
-			readyFunction();
 			dataObjectArray.ready=true;
-			return dataObjectArray;
+			console.log(dataObjectArray);
+			readyFunction(dataObjectArray);
 		}
 	}
 	
 	function generateTable() {
-		if (typeof shipObjectArray === "undefined" || !shipObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
+		if (!shipObjectArray.ready | !infocardArray.ready | !infocardMapArray.ready) {
 			setTimeout(function(){generateTable()},10);
 		} else {
 			console.log("Rendering table.");
 			$('#tableTest').DataTable( {
 				data: shipObjectArray,
 				fixedHeader: true,
+				colReorder: true,
 				"pageLength": 50,
 				"initComplete": function(settings, json) {
 					tableReady = true;
@@ -275,7 +275,7 @@
 
 		// update URL, no history addition
 		// You'd have this active in a real situation, but it causes issues in an <iframe> (like here on CodePen) in Firefox. So commenting out.
-		// window.history.replaceState("", "", hash);
+		window.history.replaceState("", "", hash);
 
 		// Close menu, in case mobile
 		anchor.closest("ul").removeClass("open");
