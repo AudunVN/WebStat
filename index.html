@@ -102,6 +102,7 @@
 							weaponEquipArray = dataObjectArray;
 							var weaponColumnArray = [
 								{ title: "Weapon", data: 'nameInfocardString' },
+								{ title: "Gun class", data: 'gunClass' },
 								{ title: "Hull damage", data: 'hull_damage' },
 								{ title: "Shield damage", data: 'energy_damage' },	
 								{ title: "Speed", data: 'muzzle_velocity' },
@@ -118,7 +119,52 @@
 							];
 							generateTable("#weaponTable", weaponEquipArray, weaponColumnArray);
 						};
+						/* ; - Class 1  (hp_gun_special_1) : Bomber torpedo
+						; - Class 2  (hp_gun_special_2) : Bomber gun
+						; - Class 3  (hp_gun_special_3) : Forward Guns
+						; - Class 4  (hp_gun_special_4) : 
+						; - Class 5  (hp_gun_special_5) : 
+						; - Class 6  (hp_gun_special_6) : Light Fighter Gun
+						; - Class 7  (hp_gun_special_7) : Standard Fighter Gun
+						; - Class 8  (hp_gun_special_8) : Heavy Fighter Gun
+						; - Class 9  (hp_gun_special_9) : Very Heavy Fighter Guns
+						; - Class 10 (hp_gun_special_10): Fighter Missiles */
+						/* ; - Class 1  (hp_turret_special_1) : Fighter Turret (Class 7 Gun Counterparts)
+						; - Class 2  (hp_turret_special_2) : Fighter Turret (Class 8 Gun Counterparts)
+						; - Class 3  (hp_turret_special_3) : Transport Turret
+						; - Class 4  (hp_turret_special_4) : Gunboat Turret (Standard)
+						; - Class 5  (hp_turret_special_5) : Gunboat Turret (Heavy)
+						; - Class 6  (hp_turret_special_6) : Cruiser Turret (Heavy)
+						; - Class 7  (hp_turret_special_7) : Cruiser Turret (Standard)
+						; - Class 8  (hp_turret_special_8) : Battleship Turret (Heavy)
+						; - Class 9  (hp_turret_special_9) : Battleship Turret (Standard)
+						; - Class 10 (hp_turret_special_10): Battleship Turret (Light) */
 						var weaponProcessingFunction = function(dataObject){
+							if (dataObject.hasOwnProperty("hp_gun_type")) {
+								switch (dataObject["hp_gun_type"]) {
+									case "hp_gun_special_1": {dataObject["gunClass"] = "Bomber torpedo"; break; }
+									case "hp_gun_special_2": {dataObject["gunClass"] = "Bomber gun"; break; }
+									case "hp_gun_special_3": {dataObject["gunClass"] = "Forward gun"; break; }
+									case "hp_gun_special_4": {dataObject["gunClass"] = "hp_gun_special_4"; break; }
+									case "hp_gun_special_5": {dataObject["gunClass"] = "hp_gun_special_5"; break; }
+									case "hp_gun_special_6": {dataObject["gunClass"] = "Light fighter gun"; break; }
+									case "hp_gun_special_7": {dataObject["gunClass"] = "Standard fighter gun"; break; }
+									case "hp_gun_special_8": {dataObject["gunClass"] = "Heavy fighter gun"; break; }
+									case "hp_gun_special_9": {dataObject["gunClass"] = "Very heavy fighter gun"; break; }
+									case "hp_gun_special_10": {dataObject["gunClass"] = "Fighter missile"; break; }
+									case "hp_turret_special_1": {dataObject["gunClass"] = "Fighter turret"; break; }
+									case "hp_turret_special_2": {dataObject["gunClass"] = "Fighter turret"; break; }
+									case "hp_turret_special_3": {dataObject["gunClass"] = "Transport turret"; break; }
+									case "hp_turret_special_4": {dataObject["gunClass"] = "Gunboat turret (standard)"; break; }
+									case "hp_turret_special_5": {dataObject["gunClass"] = "Gunboat turret (heavy)"; break; }
+									case "hp_turret_special_6": {dataObject["gunClass"] = "Cruiser turret (heavy)"; break; }
+									case "hp_turret_special_7": {dataObject["gunClass"] = "Cruiser turret (standard)"; break; }
+									case "hp_turret_special_8": {dataObject["gunClass"] = "Battleship turret (heavy)"; break; }
+									case "hp_turret_special_9": {dataObject["gunClass"] = "Battleship turret (standard)"; break; }
+									case "hp_turret_special_10": {dataObject["gunClass"] = "Battleship turret (light)"; break; }
+									default: {dataObject["gunClass"] = "Unknown"; break; }
+								}
+							}
 							if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
 								dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
 								if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
@@ -152,7 +198,7 @@
 							}
 							return dataObject;
 						};
-						generateDataObjectArray(data, "gun", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate", "power_usage"], weaponReadyFunction, weaponProcessingFunction);
+						generateDataObjectArray(data, "gun", ["hp_gun_type", "ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate", "power_usage"], weaponReadyFunction, weaponProcessingFunction);
 					};
 					var munitionProcessingFunction = function(dataObject){
 						console.log(dataObject["explosion_arch"]);
