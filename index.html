@@ -180,6 +180,30 @@
 				"initComplete": function(settings, json) {
 					tableReady = true;
 					$('#tableTest').DataTable().buttons().container().appendTo( $('.col-sm-6:eq(0)', $('#tableTest').DataTable().table().container() ) );
+					this.api().columns().every( function () {
+						var column = this;
+						var select = $('<select><option value=""></option></select>')
+							.appendTo( $(column.header()) )
+							.on( 'change', function () {
+								var val = $.fn.dataTable.util.escapeRegex(
+									$(this).val()
+								);
+		 
+								column
+									.search( val ? '^'+val+'$' : '', true, false )
+									.draw();
+							} );
+		 
+						column.data().unique().sort().each( function ( d, j ) {
+							select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					} );
+					$( "#tableTest select" ).click(function( event ) {
+					  event.stopPropagation();
+					});
+					$( "#tableTest select" ).mousedown(function( event ) {
+					  event.stopPropagation();
+					});
 				},
 				columns: [
 					{ title: "Ship", data: 'nameInfocardString' },
@@ -314,11 +338,32 @@
 			padding-right: 0;
 		}
 		
+		.col-sm-6, .col-sm-5 {
+			padding-left: 2em;
+		}
+		
+		select {
+			margin-left: 0.5em;
+		}
+		
 		table.dataTable.fixedHeader-floating, table.dataTable.fixedHeader-locked {
 			background-color: #000 !important;
 			width: 100%;
 			padding: 0px;
 			margin: 0px;
+		}
+		
+		.table select {
+			margin-left: 0.5em;
+			color: white;
+			background-color: rgb(78, 78, 78);
+			border: 1px solid gray;
+			border-radius: 4px;
+			font-weight: 400;
+		}
+		
+		.table select option {
+			border: none;
 		}
 		
 		/* third-party code starts */
@@ -403,7 +448,7 @@
 
 		.tabs > div {
 		  display: none;
-		  padding: 1rem;
+		  padding-top: 1rem;
 		}
 		.tabs > div:nth-of-type(1) {
 		  background: #9b59b6;
