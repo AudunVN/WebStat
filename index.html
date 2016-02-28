@@ -19,7 +19,9 @@
 	var infocardMapFile = dataRootPath+"infocardmap.ini";
 	var shiparchFile = dataRootPath+"shiparch.ini";
 	var weaponEquipFile = dataRootPath+"weapon_equip.ini";
+	var explosionFile = dataRootPath+"explosions.ini";
 	var tableReady = false;
+	
 	var infocardArray = {};
 	infocardArray.ready = false;
 	var infocardMapArray = {};
@@ -30,6 +32,9 @@
 	weaponEquipArray.ready = false;
 	var weaponMunitionArray = {};
 	weaponMunitionArray.ready = false;
+	var explosionArray = {};
+	explosionArray.ready = false;
+	
 	var textRegex = /(<(text|TEXT)>.+?<\/(text|TEXT)>|<(para|PARA)\/>)/g;
 	var commentRegex = /[\n\r]+;+.*/g;
 	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
@@ -67,36 +72,94 @@
 			console.log("Infocard map lookup array generated");
 		});
 		
-		$.get(weaponEquipFile, function(data) {
-			var weaponReadyFunction = function(dataObjectArray){
-				console.log("Weapon object array generated");
-				weaponEquipArray = dataObjectArray;
-				var weaponColumnArray = [
-					{ title: "Weapon", data: 'nameInfocardString' },
-					{ title: "Hull damage", data: 'hull_damage' },
-					{ title: "Shield damage", data: 'energy_damage' },	
-					{ title: "Speed", data: 'muzzle_velocity' },
-					{ title: "Refire delay", data: 'refire_delay' },
-					{ title: "Turn rate", data: 'turn_rate' },
-					{ title: "Hitpoints", data: 'hit_pts' },
-					{ title: "Name infocard number", data: 'ids_name' },
-					{ title: "Infocard number", data: 'ids_info' },
-					{ title: "Internal nickname", data: 'nickname' },
-					{ title: "Infocard", data: 'infocardString' }
-				];
-				generateTable("#weaponTable", weaponEquipArray, weaponColumnArray);
+		$.get(explosionFile, function(data) {
+			var explosionsReadyFunction = function(dataObjectArray){
+				console.log("EXPLOSION OBJECT ARRAY GENERATED!");
+				explosionArray = dataObjectArray;
 			};
-			var weaponProcessingFunction = function(dataObject){
-				if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
-					dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
-					if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
-						dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
-					}
-				}
+			var explosionProcessingFunction = function(dataObject){
 				return dataObject;
 			};
-			generateDataObjectArray(data, "", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);
-			/* generateDataObjectArray(data, "", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);*/
+			generateDataObjectArray(data, "explosion", ["nickname"], explosionsReadyFunction, explosionProcessingFunction);
+		});
+		
+		function generateWeaponObject(data) {
+			if (!explosionArray.ready) {
+				setTimeout(function(){generateWeaponObject(data)},10);
+			} else {
+				var explosionsReadyFunction = function(dataObjectArray){
+					console.log("ADDING MORE EXPLOSIONS TO THE EXPLOSION ARRAY!");
+					explosionArray = explosionArray.concat(dataObjectArray);
+					console.log(explosionArray);
+					/* grab /all/ the explosions first! */
+					/* then process munitions */
+					var munitionReadyFunction = function(dataObjectArray){
+						console.log("Munition object array generated");
+						weaponMunitionArray = dataObjectArray;
+						/* then process guns when munitions ready */
+						var weaponReadyFunction = function(dataObjectArray){
+							console.log("Weapon object array generated");
+							weaponEquipArray = dataObjectArray;
+							var weaponColumnArray = [
+								{ title: "Weapon", data: 'nameInfocardString' },
+								{ title: "Hull damage", data: 'hull_damage' },
+								{ title: "Shield damage", data: 'energy_damage' },	
+								{ title: "Speed", data: 'muzzle_velocity' },
+								{ title: "Refire delay", data: 'refire_delay' },
+								{ title: "Turn rate", data: 'turn_rate' },
+								{ title: "Hitpoints", data: 'hit_pts' },
+								{ title: "Name infocard number", data: 'ids_name' },
+								{ title: "Infocard number", data: 'ids_info' },
+								{ title: "Internal nickname", data: 'nickname' },
+								{ title: "Infocard", data: 'infocardString' }
+							];
+							generateTable("#weaponTable", weaponEquipArray, weaponColumnArray);
+						};
+						var weaponProcessingFunction = function(dataObject){
+							if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
+								dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
+								if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
+									dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
+								}
+							}
+							if (dataObject.hasOwnProperty("projectile_archetype")) {
+								var hopefullyAMunition = weaponMunitionArray.filter(function(munition) {
+									return munition["nickname"] == dataObject["projectile_archetype"];
+								})[0];
+								if (typeof hopefullyAMunition !== "undefined") {
+									dataObject["hull_damage"] = hopefullyAMunition["hull_damage"];
+									dataObject["energy_damage"] = hopefullyAMunition["energy_damage"];
+								}
+							}
+							return dataObject;
+						};
+						generateDataObjectArray(data, "gun", ["ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate"], weaponReadyFunction, weaponProcessingFunction);
+					};
+					var munitionProcessingFunction = function(dataObject){
+						console.log(dataObject["explosion_arch"]);
+						if (typeof dataObject["explosion_arch"] !== "undefined") {
+							console.log(dataObject["explosion_arch"]);
+							var hopefullyAnExplosion = explosionArray.filter(function(explosion) {
+								return explosion["nickname"] == dataObject["explosion_arch"];
+							})[0];
+							if (typeof hopefullyAnExplosion !== "undefined") {
+								dataObject["hull_damage"] = hopefullyAnExplosion["hull_damage"];
+								dataObject["energy_damage"] = hopefullyAnExplosion["energy_damage"];
+							}
+						}
+						return dataObject;
+					};
+					generateDataObjectArray(data, "munition", ["hull_damage", "energy_damage"], munitionReadyFunction, munitionProcessingFunction);
+				};
+				var explosionProcessingFunction = function(dataObject){
+					return dataObject;
+				};
+				generateDataObjectArray(data, "explosion", ["nickname"], explosionsReadyFunction, explosionProcessingFunction);
+			}
+		}
+		
+		$.get(weaponEquipFile, function(data) {
+			generateWeaponObject(data);
 		});
 		
 		$.get(shiparchFile, function(data) {
@@ -187,7 +250,7 @@
 							dataObject[keyPair[0].toString().trim()] = keyPair[1].toString().trim()
 						}
 					}
-					/* grab infocards if available */
+					/* grab infocards if available - edit: this should be handled separately in the processingFunction() for each data type. */
 					/*var extraInfocards = rawObjectDataArray[i].match(idsInfoRegex);
 					for (d = 0; d < extraInfocards.length; d++) {
 						var extraNum = d;
@@ -355,6 +418,7 @@
 		
 		if (tableReady) {
 			$('#tableTest').DataTable().responsive.recalc();
+			$('#weaponTable').DataTable().responsive.recalc();
 		}
 
 	  },
