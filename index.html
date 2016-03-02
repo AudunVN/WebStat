@@ -28,6 +28,7 @@
 	var shiparchFile = dataRootPath+"shiparch.ini";
 	var weaponEquipFile = dataRootPath+"weapon_equip.ini";
 	var explosionFile = dataRootPath+"explosions.ini";
+	var miscEquipFile = dataRootPath+"misc_good.ini";
 	var tableReady = false;
 	
 	var infocardArray = {};
@@ -233,6 +234,29 @@
 		
 		$.get(weaponEquipFile, function(data) {
 			generateWeaponObject(data);
+		});
+		
+		$.get(miscEquipFile, function(data) {
+			var miscEquipReadyFunction = function(dataObjectArray){
+				console.log("ID object array generated");
+				miscEquipObjectArray = dataObjectArray;
+				var miscEquipColumnArray = [
+					{ title: "ID", data: 'nameInfocardString' },
+					{ title: "Price", data: 'price' },
+					{ title: "ID text", data: 'infocardString' }
+				];
+				generateTable("#idTable", miscEquipObjectArray, miscEquipColumnArray);
+			};
+			var miscEquipProcessingFunction = function(dataObject){
+				if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
+					dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
+					if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
+						dataObject["infocardString"] += parseInfocard(infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]]);
+					}
+				}
+				return dataObject;
+			};
+			generateDataObjectArray(data, "good", ["dsy_license", "ids_info", "ids_name", "nickname"], miscEquipReadyFunction, miscEquipProcessingFunction);
 		});
 		
 		$.get(shiparchFile, function(data) {
@@ -704,6 +728,7 @@
 				<li><a href="#info" class="active">Information</a></li>
 				<li><a href="#ships">Ships</a></li>
 				<li><a href="#weapons">Weapons</a></li>
+				<li><a href="#ids">IDs</a></li>
 				<li><a href="http://space.discoverygc.com/" target="_BLANK">Tool Overview</a></li>
 			</ul>
 		</nav>
@@ -715,6 +740,18 @@
 		</div>
 		<div id="weapons">
 			<table id="weaponTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+		</div>
+		<div id="commodities">
+			<table id="commodityTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+		</div>
+		<div id="ids">
+			<table id="idTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+		</div>
+		<div id="scanners">
+			<table id="scannerTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+		</div>
+		<div id="mines">
+			<table id="mineTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
 		</div>
 	</div>
 
