@@ -210,9 +210,7 @@
 						generateDataObjectArray(data, "gun", ["hp_gun_type", "ids_info", "ids_name", "muzzle_velocity", "hit_pts", "power_usage", "refire_delay", "turn_rate", "power_usage"], weaponReadyFunction, weaponProcessingFunction);
 					};
 					var munitionProcessingFunction = function(dataObject){
-						console.log(dataObject["explosion_arch"]);
 						if (typeof dataObject["explosion_arch"] !== "undefined") {
-							console.log(dataObject["explosion_arch"]);
 							var hopefullyAnExplosion = explosionArray.filter(function(explosion) {
 								return explosion["nickname"] == dataObject["explosion_arch"];
 							})[0];
@@ -323,13 +321,11 @@
 			var dataObjectArray = [];
 			sanitizedRawData = rawDataString.replace(commentRegex,"").toLowerCase();
 			var selectorRegex = /(\n[^\r\n;]*\[[^\[\]]+\])([^;\[]*(?=\n\w*|$))/;
-			console.log(sanitizedRawData.match(selectorRegex)[1].slice(2,-1));
 			if (typeof dataIdentifier === "undefined" || dataIdentifier === "") {
 				selectorRegex = new RegExp("(\n[^\r\n;]*\[" + sanitizedRawData.match(selectorRegex)[1].slice(2,-1) + "\])([^;\[]*(?=\n\w*|$))", "g");
 			} else {
 				selectorRegex = new RegExp("(\n[^\r\n;]*\[" + dataIdentifier + "\])([^;\[]*(?=\n\w*|$))", "g");
 			}
-			console.log(selectorRegex);
 			var rawObjectDataArray = sanitizedRawData.match(selectorRegex);
 			for (i = 0; i < rawObjectDataArray.length; i++) {
 				var objectRequirementsMet = true;
@@ -380,7 +376,6 @@
 				}
 			}
 			dataObjectArray.ready=true;
-			console.log(dataObjectArray);
 			readyFunction(dataObjectArray);
 		}
 	}
@@ -396,7 +391,7 @@
 				colReorder: true,
 				"pageLength": 50,
 				"initComplete": function(settings, json) {
-					tableReady = true;
+					$(tableSelector).attr("ready", "ready");
 					$(tableSelector).DataTable().buttons().container().appendTo( $('.col-sm-6:eq(0)', $(tableSelector).DataTable().table().container() ) );
 					this.api().columns().every( function () {
 						var column = this;
@@ -477,9 +472,7 @@
 		this.bindUIfunctions();
 		this.pageLoadCorrectTab();
 	  },
-
 	  bindUIfunctions: function() {
-
 		// Delegation
 		$(document)
 		  .on("click", ".transformer-tabs a[href^='#']:not('.active')", function(event) {
@@ -490,45 +483,30 @@
 			Tabs.toggleMobileMenu(event, this);
 			event.preventDefault();
 		  });
-
 	  },
-
 	  changeTab: function(hash) {
-
 		var anchor = $("[href='" + hash + "']");
 		var div = $(hash);
-		console.log(hash);
-
 		// activate correct anchor (visually)
 		anchor.addClass("active").parent().siblings().find("a").removeClass("active");
-
 		// activate correct div (visually)
 		div.addClass("active").siblings().removeClass("active");
-		console.log(div);
-
 		// update URL, no history addition
-		// You'd have this active in a real situation, but it causes issues in an <iframe> (like here on CodePen) in Firefox. So commenting out.
 		window.history.replaceState("", "", hash);
-
 		// Close menu, in case mobile
 		anchor.closest("ul").removeClass("open");
-		
-		if (tableReady) {
-			$('#tableTest').DataTable().responsive.recalc();
-			$('#weaponTable').DataTable().responsive.recalc();
+		if ($(hash+" table").attr("ready") == "ready") {
+			$(hash+" table").DataTable().responsive.recalc();
+			$(hash+" table").DataTable().draw();
 		}
-
 	  },
-
 	  // If the page has a hash on load, go to that tab
 	  pageLoadCorrectTab: function() {
 		this.changeTab(document.location.hash);
 	  },
-
 	  toggleMobileMenu: function(event, el) {
 		$(el).closest("ul").toggleClass("open");
 	  }
-
 	}
 
 	Tabs.init();
