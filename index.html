@@ -500,6 +500,8 @@
 		if ($(hash+" table").attr("ready") == "ready") {
 			$(hash+" table").DataTable().responsive.recalc();
 			$(hash+" table").DataTable().draw();
+			$(".dataTable").DataTable().fixedHeader.disable();
+			$(hash+" table").DataTable().fixedHeader.enable();
 		}
 	  },
 	  // If the page has a hash on load, go to that tab
