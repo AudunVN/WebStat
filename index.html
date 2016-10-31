@@ -29,9 +29,12 @@
 	var weaponEquipFile = dataRootPath+"weapon_equip.ini";
 	var explosionFile = dataRootPath+"explosions.ini";
 	var miscEquipFile = dataRootPath+"misc_good.ini";
+	var serverInfocardFile = dataRootPath+"serverInfocards.txt";
 	var tableReady = false;
 	
 	var infocardArray = {};
+	infocardArray.clientSideReady = false;
+	infocardArray.serverSideReady = false;
 	infocardArray.ready = false;
 	var infocardMapArray = {};
 	infocardMapArray.ready = false;
@@ -50,6 +53,7 @@
 	var commentRegex = /[\n\r]+;+.*/g;
 	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
 	var idsInfoRegex = /ids_info\d* *= *([^\r\n;]*)/g;
+	var serverInfocardRegex = /(?:infocard *)(\d*)(?: *= *)([^\n]*(?=\n\w*|$))/g;
  
 	function generateLookupArrays() {
 		/* contains all the AJAX .get requests responsible for generating the lookup arrays. */
@@ -65,8 +69,27 @@
 			for (i = 0; i < rawInfocardArray.length-1; i += 2) { 
 				infocardArray[rawInfocardArray[i].toString()] = rawInfocardArray[i+1].toString();
 			}
-			infocardArray.ready = true;
-			console.log("Infocard lookup array generated");
+			if (infocardArray.clientSideReady) {
+			
+			}
+			infocardArray.clientSideReady = true;
+			if (infocardArray.serverSideReady) {
+				infocardArray.ready = true;
+			}
+			console.log("In-game infocard lookup array generated");
+		});
+		
+		$.get(serverInfocardFile, function(data) {
+			var rawInfocardArray = data.match(serverInfocardRegex);
+			for (i = 0; i < rawInfocardArray.length; i++) {
+				infocardSplit = rawInfocardArray[i].split("infocard ")[1].split(" = ");
+				infocardArray[infocardSplit[0].toString()] = infocardSplit[1].toString();
+			}
+			infocardArray.serverSideReady = true;
+			if (infocardArray.clientSideReady) {
+				infocardArray.ready = true;
+			}
+			console.log("Serverside infocard lookup array generated");
 		});
 		
 		/* infocardMapArray lists any extra infocards associated with each infocard. */
