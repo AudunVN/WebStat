@@ -56,6 +56,10 @@
 	var infocardMapRegex = /[^;][Mm]ap *= *([^;\n\r]+)/g;
 	var idsInfoRegex = /ids_info\d* *= *([^\r\n;]*)/g;
 	var serverInfocardRegex = /(?:infocard *)(\d*)(?: *= *)([^\n]*(?=\n\w*|$))/g;
+	
+	function numRound(num) {
+		return Math.round(parseFloat(num) * 100) / 100;
+	}
  
 	function generateLookupArrays() {
 		/* contains all the AJAX .get requests responsible for generating the lookup arrays. */
@@ -201,6 +205,9 @@
 									default: {dataObject["gunClass"] = "Unknown"; break; }
 								}
 							}
+							if (dataObject.hasOwnProperty("refire_delay")) {
+								dataObject["refire_delay"] = dataObject["refire_delay"];
+							}
 							if (dataObject.hasOwnProperty("ids_info") && typeof infocardArray[(parseInt(dataObject["ids_info"])).toString()] !== "undefined") {
 								dataObject["infocardString"] = parseInfocard(infocardArray[parseInt(dataObject["ids_info"])]);
 								if (typeof infocardArray[infocardMapArray[(parseInt(dataObject["ids_info"])).toString()]] !== "undefined") {
@@ -217,8 +224,8 @@
 								}
 							}
 							if (dataObject.hasOwnProperty("refire_delay")) {
-								dataObject["refireRate"] = (1/dataObject["refire_delay"]).toPrecision(3);
-								dataObject["energyConsumptionRate"] = dataObject["power_usage"]*dataObject["refireRate"];
+								dataObject["refireRate"] = numRound((1/dataObject["refire_delay"]).toPrecision(3));
+								dataObject["energyConsumptionRate"] = numRound(dataObject["power_usage"]*dataObject["refireRate"]);
 							}
 							if (typeof dataObject["nameInfocardString"] === "undefined") {
 								dataObject["nameInfocardString"] = dataObject["nickname"];
@@ -245,6 +252,9 @@
 								dataObject["hull_damage"] = hopefullyAnExplosion["hull_damage"];
 								dataObject["energy_damage"] = hopefullyAnExplosion["energy_damage"];
 							}
+						}
+						if (dataObject.hasOwnProperty("muzzle_velocity")) {
+							dataObject["muzzle_velocity"] = dataObject["muzzle_velocity"];
 						}
 						return dataObject;
 					};
@@ -369,6 +379,9 @@
 					for (y = 0; y < dataKeyPairArray.length; y++) {
 						if (dataKeyPairArray[y].indexOf("=") !== -1) {
 							var keyPair = dataKeyPairArray[y].split("=");
+							if (!isNaN(parseFloat(keyPair[1]))) {
+								keyPair[1] = numRound(parseFloat(keyPair[1].toString().trim()));
+							}
 							dataObject[keyPair[0].toString().trim()] = keyPair[1].toString().trim()
 						}
 					}
@@ -428,7 +441,9 @@
 			$(tableSelector).DataTable( {
 				data: dataObjectArray,
 				fixedHeader: true,
-				colReorder: true,
+				colReorder: {
+					fixedColumnsLeft: columnArray.length
+				},
 				"pageLength": 50,
 				"initComplete": function(settings, json) {
 					$(tableSelector).attr("ready", "ready");
@@ -479,7 +494,7 @@
 										'newIndex': evt.newIndex
 									});
 									orderArray.move(evt.oldIndex,evt.newIndex);
-									$(tableSelector).DataTable().colReorder.order(orderArray);
+									$(tableSelector).DataTable().colReorder.order(orderArray, true);
 								};
 							});
 							Sortable.create(document.querySelector(".dt-button-collection.dropdown-menu"), options);
@@ -487,12 +502,12 @@
 					} );
 				},
 				columns: columnArray,
-				stateSave: true,
+				stateSave: /*true*/false,
 				buttons: [
 					{
 						extend: 'colvis',
 						text: 'Column order and visibility'
-					},
+					}/*,
 					{
 						text: 'Reset',
 						action: function ( e, dt, node, config ) {
@@ -503,7 +518,7 @@
 							dt.colReorder.order( colArray, true );
 							dt.search( '' ).columns().search( '' ).draw();
 						}
-					}
+					}*/
 				]
 			});
 			tablesReady += 1;
@@ -629,6 +644,11 @@
 			width: 100%;
 			padding: 0px;
 			margin: 0px;
+		}
+		
+		.dataTables_length {
+			float: left;
+			padding: 3px 12px 3px 0px;
 		}
 		
 		table.dataTable > tbody > tr.child ul li {
