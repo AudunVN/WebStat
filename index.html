@@ -457,6 +457,10 @@
 					$( tableSelector+" select" ).mousedown(function( event ) {
 					  event.stopPropagation();
 					});
+					/*table.on( 'column-reorder', function ( e, settings, details ) {
+						document.querySelector
+						var headerCell = $( table.column( details.to ).header() );
+					} );*/
 					$( tableSelector ).DataTable().on( 'buttons-action', function ( e, buttonApi, dataTable, node, config ) {
 						console.log( 'Button '+buttonApi.text()+' was activated' );
 						if (buttonApi.text() == "Column order and visibility") {
@@ -642,13 +646,14 @@
 		.table select {
 			color: white;
 			position: absolute;
-			top: -3em;
+			top: -3.11em;
 			left: 0px;
 			height: 2.5em;
 			background-color: rgb(78, 78, 78);
 			border: 1px solid gray;
 			border-radius: 4px;
 			font-weight: 400;
+			font-size: 0.9em;
 		}
 		
 		.table select option {
