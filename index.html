@@ -747,6 +747,10 @@
 			top: 2em;
 		}
 		
+		.nonTableContainer {
+			padding: 0.5em;
+		}
+		
 		/* third-party code starts */
 		@charset "UTF-8";
 		.transformer-tabs ul {
@@ -765,16 +769,35 @@
 		  border-bottom-color: #5B34DB;
 		}
 		.transformer-tabs li:nth-child(2) .active {
+		  color: #AB91FF;
+		  border-bottom-color: #5B34DB;
+		}
+		.transformer-tabs li:nth-child(3) .active {
 		  color: #8bc4ea;
 		  border-bottom-color: #3498db;
 		}
-		.transformer-tabs li:nth-child(3) .active {
+		.transformer-tabs li:nth-child(4) .active {
 		  color: #f0b37e;
 		  border-bottom-color: #e67e22;
 		}
-		.transformer-tabs li:nth-child(4) .active {
+		.transformer-tabs li:nth-child(5) .active {
 		  color: #df7c72;
 		  border-bottom-color: #c0392b;
+		}
+		.tabs > div:nth-of-type(1) {
+		  background: #5B34DB;
+		}
+		.tabs > div:nth-of-type(2) {
+		  background: #5B34DB;
+		}
+		.tabs > div:nth-of-type(3) {
+		  background: #3498db;
+		}
+		.tabs > div:nth-of-type(4) {
+		  background: #e67e22;
+		}
+		.tabs > div:nth-of-type(5) {
+		  background: #c0392b;
 		}
 		.transformer-tabs a {
 		  display: inline-block;
@@ -831,18 +854,6 @@
 		  display: none;
 		  padding-top: 1em;
 		}
-		.tabs > div:nth-of-type(1) {
-		  background: #5B34DB;
-		}
-		.tabs > div:nth-of-type(2) {
-		  background: #3498db;
-		}
-		.tabs > div:nth-of-type(3) {
-		  background: #e67e22;
-		}
-		.tabs > div:nth-of-type(4) {
-		  background: #c0392b;
-		}
 		.tabs > .active {
 		  display: block;
 		}
@@ -864,14 +875,19 @@
 		<nav role='navigation' class="transformer-tabs">
 			<ul>
 				<li><a href="#info" class="active">Information</a></li>
+				<li><a href="#options">Options</a></li>
 				<li><a href="#ships">Ships</a></li>
 				<li><a href="#weapons">Weapons</a></li>
 				<li><a href="#ids">IDs</a></li>
 				<li><a href="http://space.discoverygc.com/" target="_BLANK">Tool Overview</a></li>
 			</ul>
 		</nav>
-		<div id="info" class="active">
+		<div class="nonTableContainer" id="info" class="active">
 			<p>Very work-in-progress. Intended to provide a browser-based alternative to FLStat and complement the <a href="http://space.discoverygc.com/navmap" target="_BLANK">navmap</a> and <a href="http://discoverygc.com/wiki" target="_BLANK">Wiki</a> with up-to-date ship/equipment information.</p>
+		</div>
+		<div class="nonTableContainer" id="options">
+			<p>test</p>
+			<button type="button" class="btn btn-primary active">Responsive mode</button>
 		</div>
 		<div id="ships">
 			<table id="tableTest" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
