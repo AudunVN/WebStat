@@ -751,116 +751,130 @@
 			padding: 0.5em;
 		}
 		
+		th[aria-label^="Infocard"] select,
+		th[aria-label^="Name infocard"] select,
+		th[aria-label^="Infocard number"] select,
+		th[aria-label^="Internal nickname"] select,
+		th[aria-label^="Text infocard"] select,
+		th[aria-label^="Ship"] select,
+		th[aria-label^="Weapon"] select,
+		th[aria-label^="ID:"] select
+		{
+			display: none;
+		}
+		
 		/* third-party code starts */
 		@charset "UTF-8";
 		.transformer-tabs ul {
-		  list-style: none;
-		  padding: 0;
-		  margin: 0;
-		  border-bottom: 0.1em solid white;
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			border-bottom: 0.1em solid white;
 		}
 		.transformer-tabs li {
-		  display: inline-block;
-		  padding: 0;
-		  vertical-align: bottom;
+			display: inline-block;
+			padding: 0;
+			vertical-align: bottom;
 		}
 		.transformer-tabs li:nth-child(1) .active {
-		  color: #AB91FF;
-		  border-bottom-color: #5B34DB;
+			color: #AB91FF;
+			border-bottom-color: #5B34DB;
 		}
 		.transformer-tabs li:nth-child(2) .active {
-		  color: #AB91FF;
-		  border-bottom-color: #5B34DB;
+			color: #AB91FF;
+			border-bottom-color: #5B34DB;
 		}
 		.transformer-tabs li:nth-child(3) .active {
-		  color: #8bc4ea;
-		  border-bottom-color: #3498db;
+			color: #8bc4ea;
+			border-bottom-color: #3498db;
 		}
 		.transformer-tabs li:nth-child(4) .active {
-		  color: #f0b37e;
-		  border-bottom-color: #e67e22;
+			color: #f0b37e;
+			border-bottom-color: #e67e22;
 		}
 		.transformer-tabs li:nth-child(5) .active {
-		  color: #df7c72;
-		  border-bottom-color: #c0392b;
+			color: #df7c72;
+			border-bottom-color: #c0392b;
 		}
 		.tabs > div:nth-of-type(1) {
-		  background: #5B34DB;
+			background: #5B34DB;
 		}
 		.tabs > div:nth-of-type(2) {
-		  background: #5B34DB;
+			background: #5B34DB;
 		}
 		.tabs > div:nth-of-type(3) {
-		  background: #3498db;
+			background: #3498db;
 		}
 		.tabs > div:nth-of-type(4) {
-		  background: #e67e22;
+			background: #e67e22;
 		}
 		.tabs > div:nth-of-type(5) {
-		  background: #c0392b;
+			background: #c0392b;
 		}
 		.transformer-tabs a {
-		  display: inline-block;
-		  color: white;
-		  text-decoration: none;
-		  padding: 0.5em;
+			display: inline-block;
+			color: white;
+			text-decoration: none;
+			padding: 0.5em;
 		}
 		.transformer-tabs a.active {
-		  border-bottom: 0.1em solid transparent;
-		  position: relative;
-		  bottom: -0.1em;
+			border-bottom: 0.1em solid transparent;
+			position: relative;
+			bottom: -0.1em;
 		}
 		@media (max-width: 700px) {
-		  .transformer-tabs ul {
-			border-bottom: 0;
-			overflow: hidden;
-			position: relative;
-			background: #666;
-			/* fallback */
-			background: linear-gradient(#666, #222);
-		  }
-		  .transformer-tabs ul::after {
-			content: "☰";
-			position: absolute;
-			top: 0.25em;
-			right: 0.5em;
-			z-index: 2;
-			pointer-events: none;
-		  }
-		  .transformer-tabs ul.open a {
-			position: relative;
-			display: block;
-		  }
-		  .transformer-tabs li {
-			display: block;
-		  }
-		  .transformer-tabs a {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-		  }
-		  .transformer-tabs a.active {
-			border: 0;
-			z-index: 1;
-			background: #666;
-			/* fallback */
-			background: linear-gradient(#666, #222);
-		  }
+			.transformer-tabs ul {
+				border-bottom: 0;
+				overflow: hidden;
+				position: relative;
+				background: #666;
+				/* fallback */
+				background: linear-gradient(#666, #222);
+			}
+			.transformer-tabs ul::after {
+				content: "☰";
+				position: absolute;
+				top: 0.25em;
+				right: 0.5em;
+				z-index: 2;
+				pointer-events: none;
+			}
+			.transformer-tabs ul.open a {
+				position: relative;
+				display: block;
+			}
+			.transformer-tabs li {
+				display: block;
+			}
+			.transformer-tabs a {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+			}
+			.transformer-tabs a.active {
+				border: 0;
+				z-index: 1;
+				background: #666;
+				/* fallback */
+				background: linear-gradient(#666, #222);
+			}
 		}
 
 		.tabs > div {
-		  display: none;
-		  padding-top: 1em;
+			display: none;
+			padding-top: 1em;
+			overflow-x: auto;
+			width: 100%;
 		}
 		.tabs > .active {
-		  display: block;
+			display: block;
 		}
 
 		body {
-		  background: #333;
-		  color: white;
+			background: #333;
+			color: white;
 		}
 		/* third-party code ends */
 	</style>
@@ -890,7 +904,7 @@
 			<button type="button" class="btn btn-primary active">Responsive mode</button>
 		</div>
 		<div id="ships">
-			<table id="tableTest" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
+			<table id="tableTest" class="table table-striped table-hover dt nowrap" cellspacing="0" width="100%"></table>
 		</div>
 		<div id="weapons">
 			<table id="weaponTable" class="table table-striped table-hover dt-responsive nowrap" cellspacing="0" width="100%"></table>
